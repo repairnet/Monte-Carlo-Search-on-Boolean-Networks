@@ -8,11 +8,9 @@ import Random
 Random.seed!(1234)
 
 filename = "../data/WT_ensemble/bn0.bnet"
-@time bn = load_bnet(filename)
-init_active = ["miR200", "miR203", "miR34"]
-outputs = ["Apoptosis"; "CellCycleArrest"; "Invasion"; "EMT"]
-outputs = [bn.index[node] for node in outputs]
+bn = load_bnet(filename)
 
+init_active = ["miR200", "miR203", "miR34"]
 x0 = zerocfg(bn)
 for a in init_active
     x0[bn.index[a]] = true
@@ -46,8 +44,4 @@ println("Ping = $(100*result/nb_sims)%")
 println("Ping with $nb_sims * 2 simulations")
 @time result = fasync_ping([bn,bn_m], nb_sims, maxsteps, x0, in_target)
 println("Ping = $(100*result/(2*nb_sims))%")
-
-#using Profile
-#@profile fasync_simulations(bn, mutated, mutant, outputs, nb_sims, maxsteps, x0)
-#Profile.print()
 
