@@ -18,37 +18,36 @@ for a in init_active
     x0[bn.index[a]] = true
 end
 
-# warm-up
-fasync_simulations(bn, outputs, 1, 10, x0)
+iApop = bn.index["Apoptosis"]
+iCC = bn.index["CellCycleArrest"]
+iInv = bn.index["Invasion"]
+iEMT = bn.index["EMT"]
+in_target(x) = ~x[iApop] & x[iCC] & x[iInv] & x[iEMT]
 
 nb_sims = 10000
 maxsteps = 300
-println("Performing $nb_sims simulations of at most $maxsteps from fixed initial configuration")
-@time result = fasync_simulations(bn, outputs, nb_sims, maxsteps, x0)
 
-ratios = outputs_ratios(result, outputs, bn)
-println(ratios)
+# warm-up
+bn_m = make_mutant(bn, zerocfg(bn), zerocfg(bn))
+fasync_ping([bn,bn_m], 1, 10, x0, in_target)
 
-mutated = zerocfg(bn)
-mutant = zerocfg(bn)
 
-fasync_simulations(bn, mutated, mutant, outputs, 1, 10, x0)
+println("Ping with $nb_sims simulations")
+@time result = fasync_ping(bn, nb_sims, maxsteps, x0, in_target)
+println("Ping = $(100*result/nb_sims)%")
 
-println("Performing $nb_sims simulations with no mutant of at most $maxsteps from fixed initial configuration")
-@time result = fasync_simulations(bn, mutated, mutant, outputs, nb_sims, maxsteps, x0)
-ratios = outputs_ratios(result, outputs, bn)
-println(ratios)
+mutant = Dict("NICD" => true, "p53" => false)
+bn_m = make_mutant(bn, mutant)
 
-mutated[bn.index["NICD"]] = true
-mutated[bn.index["p53"]] = true
-mutant[bn.index["NICD"]] = true
-mutant[bn.index["p53"]] = false
-println("Performing $nb_sims simulations with mutant $(bn.nodes[mutated]) of at most $maxsteps from fixed initial configuration")
-@time result = fasync_simulations(bn, mutated, mutant, outputs, nb_sims, maxsteps, x0)
-ratios = outputs_ratios(result, outputs, bn)
-println(ratios)
+println("Ping with $nb_sims simulations of mutant $mutant")
+@time result = fasync_ping(bn_m, nb_sims, maxsteps, x0, in_target)
+println("Ping = $(100*result/nb_sims)%")
 
-using Profile
-@profile fasync_simulations(bn, mutated, mutant, outputs, nb_sims, maxsteps, x0)
-Profile.print()
+println("Ping with $nb_sims * 2 simulations")
+@time result = fasync_ping([bn,bn_m], nb_sims, maxsteps, x0, in_target)
+println("Ping = $(100*result/(2*nb_sims))%")
+
+#using Profile
+#@profile fasync_simulations(bn, mutated, mutant, outputs, nb_sims, maxsteps, x0)
+#Profile.print()
 
