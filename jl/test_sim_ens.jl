@@ -32,10 +32,9 @@ maxsteps = 300
 
 # warm-up (TODO: should be done at compilation..)
 println("Warmup...")
-bns_m = make_mutant(bns, Dict("Apoptosis" => true))
-fasync_ping(bns, 1, 2, x0, in_target)
-fasync_ping(bns_m, 1, 2, x0, in_target)
-println("done.")
+@time bns_m = make_mutant(bns, Dict("Apoptosis" => true))
+@time fasync_ping(bns, 1, 2, x0, in_target)
+println("Warmup done.")
 
 nb_sims_per = max(1, nb_sims ÷ length(bns))
 
