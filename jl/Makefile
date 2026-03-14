@@ -1,3 +1,3 @@
 boot:
-	julia --compiled-modules=yes --project=BooleanNetworks.jl -e "using Pkg; Pkg.instantiate(); using BooleanNetworks"
-	julia -e 'using Pkg; Pkg.add("ProgressBars")'
+	julia --project=BooleanNetworks.jl -e "using Pkg; Pkg.instantiate(); Pkg.resolve()"
+	julia --project=BooleanNetworks.jl -e "using BooleanNetworks"
